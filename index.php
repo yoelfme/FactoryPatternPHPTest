@@ -1,24 +1,14 @@
 <?php 
 
-session_start();
-$_SESSION['user'] = [];
-$_SESSION['user']['name'] = 'Yoel';
-
 require ('User.php');
 require ('Coffee.php');
+require ('AuthenticationService.php');
+require ('CoffeeMaker.php');
+require ('BarTender.php');
 
-class AuthenticationService
+interface BeverageMaker
 {
-    private $sessionData;
-    public function __construct(array $sessionData = array())
-    {
-        $this->sessionData = $sessionData;
-    }
-
-    public function user()
-    {
-        return new User($this->sessionData);   
-    }
+    public function make();
 }
 
 class Controller 
@@ -30,18 +20,18 @@ class Controller
         $this->auth = $auth;
     }
 
-    public function action()
+    public function action(BeverageMaker $beverageMake)
     {
         $user = $this->auth->user();
-        $coffee = new Coffee();
+        $beverage = $beverageMake->make();
 
-        $message = $user->drink($coffee);
+        $message = $user->drink($beverage);
 
         require 'view.php';
     }
 }
 
-$auth = new AuthenticationService($_SESSION['user']);
-$controller = new Controller($auth);
+$auth = new AuthenticationService(['name' => 'Yoel']);
 
-$controller->action();
+$controller = new Controller($auth);
+$controller->action(new BarTender());
